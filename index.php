@@ -172,16 +172,82 @@ if (file_exists($download_dir)) {
         <?php endif; ?>
         
         <div class="search-section">
-            <h2>動画を検索</h2>
+            <h2>YouTube検索</h2>
+            <form method="get" action="">
+                <div class="form-group">
+                    <input type="text" name="search" id="search" placeholder="検索キーワードを入力..." 
+                           value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                    <button type="submit">検索</button>
+                </div>
+            </form>
+            <div class="form-separator">または</div>
             <form method="post" action="">
                 <div class="form-group">
                     <label for="url">YouTube URL:</label>
                     <input type="text" name="url" id="url" placeholder="https://www.youtube.com/watch?v=..." 
-                           value="<?php echo isset($_POST['url']) ? htmlspecialchars($_POST['url']) : ''; ?>" required>
+                           value="<?php echo isset($_POST['url']) ? htmlspecialchars($_POST['url']) : ''; ?>">
                     <button type="submit">情報取得</button>
                 </div>
             </form>
         </div>
+        
+        <?php
+        // 検索キーワードが送信された場合
+        $search_results = [];
+        if (isset($_GET['search']) && !empty($_GET['search'])) {
+            $search_query = $_GET['search'];
+            
+            // Invidious APIを使用して検索
+            $search_url = "{$invidious_instance}/api/v1/search?q=" . urlencode($search_query) . "&type=video";
+            $search_response = @file_get_contents($search_url);
+            
+            if ($search_response) {
+                $search_data = json_decode($search_response, true);
+                
+                if ($search_data && is_array($search_data)) {
+                    $search_results = $search_data;
+                } else {
+                    $message = 'エラー: 検索結果を取得できませんでした。';
+                }
+            } else {
+                $message = 'エラー: Invidious APIに接続できませんでした。';
+            }
+        }
+        ?>
+        
+        <?php if (!empty($search_results)): ?>
+        <div class="search-results">
+            <h2>検索結果</h2>
+            <div class="results-grid">
+                <?php foreach ($search_results as $result): ?>
+                <div class="result-item">
+                    <a href="?url=https://www.youtube.com/watch?v=<?php echo htmlspecialchars($result['videoId']); ?>">
+                        <div class="result-thumbnail">
+                            <?php if (isset($result['videoThumbnails']) && !empty($result['videoThumbnails'])): ?>
+                            <img src="<?php echo htmlspecialchars($result['videoThumbnails'][0]['url']); ?>" alt="サムネイル">
+                            <?php endif; ?>
+                            <?php if (isset($result['lengthSeconds'])): ?>
+                            <div class="result-duration"><?php echo gmdate("H:i:s", $result['lengthSeconds']); ?></div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="result-info">
+                            <div class="result-title"><?php echo htmlspecialchars($result['title']); ?></div>
+                            <div class="result-channel"><?php echo htmlspecialchars($result['author']); ?></div>
+                            <?php if (isset($result['viewCount'])): ?>
+                            <div class="result-stats">
+                                <?php echo number_format($result['viewCount']); ?> 回視聴
+                                <?php if (isset($result['publishedText'])): ?>
+                                • <?php echo htmlspecialchars($result['publishedText']); ?>
+                                <?php endif; ?>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </a>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
         
         <?php if ($video_info): ?>
         <div class="video-info">

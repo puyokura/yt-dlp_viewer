@@ -1,0 +1,39 @@
+# Invidious Viewer 設定ファイル
+
+# Invidiousインスタンス設定
+invidious:
+  # デフォルトで使用するインスタンス
+  default_instance: "https://invidious.snopyta.org"
+  
+  # 利用可能なインスタンスのリスト（優先順位順）
+  # 最初のインスタンスが応答しない場合、次のインスタンスが使用されます
+  instances:
+    - name: "Snopyta"
+      url: "https://invidious.snopyta.org"
+      region: "EU"
+      description: "Snopytaが提供するインスタンス"
+    
+    - name: "Invidious.io"
+      url: "https://invidious.io"
+      region: "US"
+      description: "Invidious.ioが提供するインスタンス"
+    
+    - name: "Yewtu.be"
+      url: "https://yewtu.be"
+      region: "EU"
+      description: "Yewtu.beが提供するインスタンス"
+
+# アプリケーション設定
+app:
+  # 視聴履歴の保存日数
+  history_days: 30
+  
+  # ダウンロードディレクトリ
+  download_dir: "downloads"
+  
+  # デフォルトの動画品質（可能な場合）
+  # 選択肢: highest, lowest, 720p, 480p, 360p
+  default_quality: "720p"
+  
+  # エラー表示設定
+  display_errors: true

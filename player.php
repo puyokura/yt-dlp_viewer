@@ -1,33 +1,65 @@
 <?php
-// エラー表示設定
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// 設定ファイルを読み込み
+require_once __DIR__ . '/config.php';
 
-// ファイルパスのパラメータを取得
-$file = isset($_GET['file']) ? $_GET['file'] : '';
-$download_dir = './downloads';
-$file_path = $download_dir . '/' . basename($file);
+// 動画IDとフォーマットの取得
+$video_id = isset($_GET['id']) ? $_GET['id'] : '';
+$format_id = isset($_GET['format']) ? $_GET['format'] : '';
 
-// ファイルが存在するか確認
-$file_exists = file_exists($file_path);
-$file_type = '';
+// 動画IDが存在しない場合はエラー
+if (empty($video_id)) {
+    header('HTTP/1.1 400 Bad Request');
+    echo '動画IDが指定されていません';
+    exit;
+}
 
-if ($file_exists) {
-    // ファイルタイプを取得
-    $file_info = pathinfo($file_path);
-    $extension = strtolower($file_info['extension']);
-    
-    // 動画か音声かを判断
-    $video_extensions = ['mp4', 'webm', 'ogg', 'mkv'];
-    $audio_extensions = ['mp3', 'm4a', 'wav', 'ogg'];
-    
-    if (in_array($extension, $video_extensions)) {
-        $file_type = 'video';
-    } elseif (in_array($extension, $audio_extensions)) {
-        $file_type = 'audio';
+// Invidious APIを使用して動画情報を取得
+$api_url = "{$invidious_instance}/api/v1/videos/{$video_id}";
+$api_response = @file_get_contents($api_url);
+
+if (!$api_response) {
+    header('HTTP/1.1 500 Internal Server Error');
+    echo 'Invidious APIに接続できませんでした';
+    exit;
+}
+
+$api_data = json_decode($api_response, true);
+
+if (!$api_data || !isset($api_data['title'])) {
+    header('HTTP/1.1 404 Not Found');
+    echo '動画情報を取得できませんでした';
+    exit;
+}
+
+// 動画情報を取得
+$video_title = $api_data['title'];
+$video_author = $api_data['author'];
+
+// 利用可能なストリームフォーマットを取得
+$formats = [];
+$selected_format = null;
+
+if (isset($api_data['formatStreams']) && is_array($api_data['formatStreams'])) {
+    foreach ($api_data['formatStreams'] as $format) {
+        $formats[] = $format;
+        
+        // 指定されたフォーマットIDと一致するか、指定がなければ最高画質を選択
+        if ((!empty($format_id) && $format['itag'] == $format_id) || 
+            (empty($format_id) && (!$selected_format || $format['height'] > $selected_format['height']))) {
+            $selected_format = $format;
+        }
     }
 }
+
+// 再生可能なフォーマットが見つからない場合はエラー
+if (!$selected_format) {
+    header('HTTP/1.1 404 Not Found');
+    echo '再生可能なフォーマットが見つかりませんでした';
+    exit;
+}
+
+// コンテンツタイプの設定
+$content_type = 'video/' . $selected_format['container'];
 ?>
 
 <!DOCTYPE html>

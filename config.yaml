@@ -20,8 +20,51 @@ invidious:
     
     - name: "Yewtu.be"
       url: "https://yewtu.be"
-      region: "EU"
+      region: "DE"
       description: "Yewtu.beが提供するインスタンス"
+      health: 100
+    
+    - name: "Nadeko"
+      url: "https://inv.nadeko.net"
+      region: "CL"
+      description: "Nadekoが提供するインスタンス"
+      health: 100
+    
+    - name: "420129.xyz"
+      url: "https://id.420129.xyz"
+      region: "DE"
+      description: "420129.xyzが提供するインスタンス"
+      health: 94
+    
+    - name: "NerdVPN"
+      url: "https://invidious.nerdvpn.de"
+      region: "UA"
+      description: "NerdVPNが提供するインスタンス"
+      health: 84
+    
+    - name: "F5.si"
+      url: "https://invidious.f5.si"
+      region: "JP"
+      description: "F5.siが提供するインスタンス"
+      health: 75
+    
+    - name: "Lekker"
+      url: "https://lekker.gay"
+      region: "Unknown"
+      description: "Lekkerが提供するインスタンス"
+      health: 80
+    
+    - name: "TechnicalVoid"
+      url: "https://invidious.technicalvoid.dev"
+      region: "Unknown"
+      description: "TechnicalVoidが提供するインスタンス"
+      health: 80
+    
+    - name: "Schenkel"
+      url: "https://invidious.schenkel.eti.br"
+      region: "BR"
+      description: "Schenkelが提供するインスタンス"
+      health: 80
 
 # アプリケーション設定
 app:

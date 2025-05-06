@@ -352,6 +352,13 @@ footer a:hover {
     padding-bottom: 0;
 }
 
+.health-indicator {
+    display: inline-block;
+    margin-left: 5px;
+    font-weight: bold;
+    font-size: 0.85em;
+}
+
 /* レスポンシブデザイン */
 @media (max-width: 768px) {
     .container {

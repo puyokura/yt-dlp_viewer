@@ -8,6 +8,9 @@ header('Access-Control-Allow-Headers: Content-Type');
 // 設定ファイルを読み込み
 require_once __DIR__ . '/config.php';
 
+// Invidiousインスタンスを取得（健全性を考慮）
+$invidious_instance = get_current_invidious_instance();
+
 // OPTIONSリクエストの場合は早期リターン
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);

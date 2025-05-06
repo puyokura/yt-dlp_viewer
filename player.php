@@ -2,6 +2,9 @@
 // 設定ファイルを読み込み
 require_once __DIR__ . '/config.php';
 
+// Invidiousインスタンスを取得（健全性を考慮）
+$invidious_instance = get_current_invidious_instance();
+
 // 動画IDとフォーマットの取得
 $video_id = isset($_GET['id']) ? $_GET['id'] : '';
 $format_id = isset($_GET['format']) ? $_GET['format'] : '';

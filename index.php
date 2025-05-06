@@ -4,6 +4,9 @@ require_once __DIR__ . '/config.php';
 
 // 注: エラー表示設定とダウンロードディレクトリの設定はconfig.phpで行われます
 
+// Invidiousインスタンスを取得（健全性を考慮）
+$invidious_instance = get_current_invidious_instance();
+
 // 注意: ダウンロード機能とファイル削除機能は削除されました
 
 $message = '';
@@ -306,6 +309,7 @@ if (file_exists($download_dir)) {
                     <li>
                         <a href="<?php echo htmlspecialchars($instance['url']); ?>" target="_blank"><?php echo htmlspecialchars($instance['name']); ?></a>
                         <?php if (isset($instance['region'])): ?>(<?php echo htmlspecialchars($instance['region']); ?>)<?php endif; ?>
+                        <?php if (isset($instance['health'])): ?><span class="health-indicator" style="color: <?php echo get_health_color($instance['health']); ?>">[健全性: <?php echo htmlspecialchars($instance['health']); ?>%]</span><?php endif; ?>
                         <?php if (isset($instance['description'])): ?> - <?php echo htmlspecialchars($instance['description']); ?><?php endif; ?>
                     </li>
                     <?php endforeach; ?>

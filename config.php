@@ -172,53 +172,45 @@ if (!$config) {
 }
 
 /**
- * 利用可能なInvidiousインスタンスを取得
- * 
- * @return array 利用可能なインスタンスの配列
+ * 利用可能なInvidiousインスタンスのリストを取得
+ * @param bool $sort_by_health 健全性でソートするかどうか
+ * @return array インスタンスの配列
  */
-function get_invidious_instances() {
+function get_invidious_instances($sort_by_health = false) {
     global $config;
-    return isset($config['invidious']['instances']) ? $config['invidious']['instances'] : [];
+    $instances = isset($config['invidious']['instances']) ? $config['invidious']['instances'] : [];
+    
+    if ($sort_by_health && !empty($instances)) {
+        // 健全性でソート（降順）
+        usort($instances, function($a, $b) {
+            $a_health = isset($a['health']) ? (int)$a['health'] : 0;
+            $b_health = isset($b['health']) ? (int)$b['health'] : 0;
+            return $b_health - $a_health; // 降順
+        });
+    }
+    
+    return $instances;
 }
 
 /**
- * 動作するInvidiousインスタンスを取得
+ * 現在のInvidiousインスタンスを取得
+ * 健全性を考慮して最適なインスタンスを選択
  * 
- * @return string 動作するインスタンスのURL、見つからない場合はデフォルトインスタンス
+ * @return string インスタンスのURL
  */
-function get_working_invidious_instance() {
+function get_current_invidious_instance() {
     global $config;
+    $default = isset($config['invidious']['default_instance']) ? $config['invidious']['default_instance'] : 'https://invidious.snopyta.org';
     
-    // デフォルトインスタンス
-    $default_instance = isset($config['invidious']['default_instance']) ? 
-        $config['invidious']['default_instance'] : 
-        'https://invidious.snopyta.org';
+    // 健全性でソートされたインスタンスを取得
+    $instances = get_invidious_instances(true);
     
-    // インスタンスリストが設定されていない場合はデフォルトを返す
-    if (!isset($config['invidious']['instances']) || empty($config['invidious']['instances'])) {
-        return $default_instance;
+    // 健全性の高いインスタンスがある場合はそれを使用
+    if (!empty($instances) && isset($instances[0]['url'])) {
+        return $instances[0]['url'];
     }
     
-    // 各インスタンスをテスト
-    foreach ($config['invidious']['instances'] as $instance) {
-        $url = $instance['url'];
-        
-        // インスタンスが応答するかテスト
-        $context = stream_context_create([
-            'http' => [
-                'timeout' => 2 // 2秒のタイムアウト
-            ]
-        ]);
-        
-        $response = @file_get_contents($url . '/api/v1/stats', false, $context);
-        
-        if ($response !== false) {
-            return $url;
-        }
-    }
-    
-    // 動作するインスタンスが見つからない場合はデフォルトを返す
-    return $default_instance;
+    return $default;
 }
 
 /**
@@ -233,6 +225,28 @@ function get_app_config($key, $default = null) {
     return isset($config['app'][$key]) ? $config['app'][$key] : $default;
 }
 
+/**
+ * インスタンスの健全性に基づいて色を取得
+ * 
+ * @param int $health 健全性の値（0-100）
+ * @return string 色のHEXコード
+ */
+function get_health_color($health) {
+    $health = (int)$health;
+    
+    if ($health >= 90) {
+        return '#4CAF50'; // 緑（良好）
+    } else if ($health >= 70) {
+        return '#8BC34A'; // 薄緑（やや良好）
+    } else if ($health >= 50) {
+        return '#FFC107'; // 黄色（普通）
+    } else if ($health >= 30) {
+        return '#FF9800'; // オレンジ（やや不良）
+    } else {
+        return '#F44336'; // 赤（不良）
+    }
+}
+
 // エラー表示設定
 ini_set('display_errors', get_app_config('display_errors', true) ? 1 : 0);
 ini_set('display_startup_errors', get_app_config('display_errors', true) ? 1 : 0);
@@ -244,5 +258,5 @@ if (!file_exists($download_dir)) {
     mkdir($download_dir, 0777, true);
 }
 
-// 動作するInvidiousインスタンスを取得
-$invidious_instance = get_working_invidious_instance();
+// 健全性を考慮したInvidiousインスタンスを取得
+$invidious_instance = get_current_invidious_instance();
